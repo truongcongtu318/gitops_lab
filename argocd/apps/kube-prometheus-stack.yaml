@@ -33,6 +33,7 @@ spec:
               group_interval: 1m
               repeat_interval: 30m
             receivers:
+              - name: "null"
               - name: email-personal
                 email_configs:
                   - to: tutc.work@gmail.com

@@ -24,3 +24,13 @@ spec:
           annotations:
             summary: "API SLO violation: high error rate"
             description: "API endpoint / has more than 5% HTTP 5xx responses for 1 minute. Current value: {{ $value | humanizePercentage }}."
+        - alert: ApiEmailPipelineTest
+          expr: vector(1)
+          for: 0m
+          labels:
+            severity: warning
+            service: api
+            test: email-pipeline
+          annotations:
+            summary: "API email pipeline test"
+            description: "Testing Prometheus to Alertmanager to Gmail delivery."
