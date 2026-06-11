@@ -9,28 +9,46 @@ spec:
   groups:
     - name: api-slo
       rules:
-        - alert: ApiSLOErrorRateHigh
+        - alert: ApiHighErrorRate
           expr: |
             (
-              sum(rate(flask_http_request_total{namespace="demo",endpoint="http",status=~"5.."}[1m]))
+              sum(rate(flask_http_request_total{namespace="demo",service="api",status=~"5.."}[5m]))
               /
-              sum(rate(flask_http_request_total{namespace="demo",endpoint="http"}[1m]))
+              clamp_min(sum(rate(flask_http_request_total{namespace="demo",service="api"}[5m])), 0.001)
             ) > 0.05
-          for: 1m
+          for: 5m
           labels:
             severity: warning
             service: api
             slo: api-success-rate
           annotations:
-            summary: "API SLO violation: high error rate"
-            description: "API endpoint / has more than 5% HTTP 5xx responses for 1 minute. Current value: {{ $value | humanizePercentage }}."
-        - alert: ApiEmailPipelineTest
-          expr: vector(1)
-          for: 0m
+            summary: "API error rate is above 5%"
+            description: "API service in namespace demo has more than 5% HTTP 5xx responses for 5 minutes. Current error ratio: {{ $value | humanizePercentage }}."
+            runbook_url: "https://github.com/truongcongtu318/gitops_lab"
+        - alert: ApiCriticalErrorRate
+          expr: |
+            (
+              sum(rate(flask_http_request_total{namespace="demo",service="api",status=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(flask_http_request_total{namespace="demo",service="api"}[5m])), 0.001)
+            ) > 0.20
+          for: 2m
           labels:
-            severity: warning
+            severity: critical
             service: api
-            test: email-pipeline
+            slo: api-success-rate
           annotations:
-            summary: "API email pipeline test"
-            description: "Testing Prometheus to Alertmanager to Gmail delivery."
+            summary: "API critical error rate is above 20%"
+            description: "API service in namespace demo has more than 20% HTTP 5xx responses for 2 minutes. Current error ratio: {{ $value | humanizePercentage }}."
+            runbook_url: "https://github.com/truongcongtu318/gitops_lab"
+        - alert: ApiTargetDown
+          expr: up{namespace="demo",service="api"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            service: api
+            slo: api-availability
+          annotations:
+            summary: "API target is down"
+            description: "Prometheus cannot scrape the API target in namespace demo for more than 2 minutes. Check pod status, ServiceMonitor, service endpoints, and /metrics endpoint."
+            runbook_url: "https://github.com/truongcongtu318/gitops_lab"

@@ -21,23 +21,40 @@ spec:
               - alertmanager-smtp-password
           config:
             global:
+              resolve_timeout: 5m
               smtp_smarthost: smtp.gmail.com:587
               smtp_from: tutc.work@gmail.com
               smtp_auth_username: tutc.work@gmail.com
               smtp_auth_password_file: /etc/alertmanager/secrets/alertmanager-smtp-password/password
               smtp_require_tls: true
             route:
-              receiver: email-personal
-              group_by: ['alertname', 'namespace', 'service']
-              group_wait: 10s
-              group_interval: 1m
-              repeat_interval: 30m
+              receiver: "null"
+              group_by: ['alertname', 'namespace', 'service', 'severity']
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
+              routes:
+                - receiver: email-api-alerts
+                  matchers:
+                    - service = "api"
+                    - severity =~ "warning|critical"
+                  group_wait: 30s
+                  group_interval: 5m
+                  repeat_interval: 4h
+            inhibit_rules:
+              - source_matchers:
+                  - severity = "critical"
+                target_matchers:
+                  - severity = "warning"
+                equal: ['namespace', 'service', 'slo']
             receivers:
               - name: "null"
-              - name: email-personal
+              - name: email-api-alerts
                 email_configs:
                   - to: tutc.work@gmail.com
                     send_resolved: true
+                    headers:
+                      subject: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} {{ .CommonLabels.namespace }}/{{ .CommonLabels.service }}'
         grafana:
           adminPassword: admin
   destination:
