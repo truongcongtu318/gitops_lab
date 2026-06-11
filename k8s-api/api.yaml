@@ -24,9 +24,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "0"
+              value: "0.5"
             - name: VERSION
-              value: "v3-good"
+              value: "v4-bad"
           readinessProbe:
             httpGet:
               path: /healthz
@@ -40,14 +40,14 @@ spec:
         - pause:
             duration: 30s
         - analysis:
-           templates:
-            - templateName: api-success-rate
+            templates:
+              - templateName: api-success-rate
         - setWeight: 50
         - pause:
             duration: 30s
         - analysis:
-           templates:
-            - templateName: api-success-rate
+            templates:
+              - templateName: api-success-rate
         - setWeight: 100
 ---
 apiVersion: v1
@@ -64,3 +64,27 @@ spec:
       targetPort: 8080
   selector:
     app: api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load
+  namespace: demo
+  labels:
+    app: load
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: load
+  template:
+    metadata:
+      labels:
+        app: load
+    spec:
+      containers:
+        - name: load
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - 'while true; do wget -qO- http://api:8080/ >/dev/null 2>&1; done'
