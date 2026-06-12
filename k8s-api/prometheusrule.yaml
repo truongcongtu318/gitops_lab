@@ -52,3 +52,17 @@ spec:
             summary: "API target is down"
             description: "Prometheus cannot scrape the API target in namespace demo for more than 2 minutes. Check pod status, ServiceMonitor, service endpoints, and /metrics endpoint."
             runbook_url: "https://github.com/truongcongtu318/gitops_lab"
+        - alert: ApiCanaryRolloutFailed
+          expr: |
+            sum by (namespace, name, reason) (
+              increase(rollout_events_total{namespace="demo",name="api",reason=~"AnalysisRunFailed|RolloutAborted",type="Warning"}[2m])
+            ) > 0
+          for: 0m
+          labels:
+            severity: critical
+            service: api
+            slo: api-canary
+          annotations:
+            summary: "API canary rollout failed"
+            description: "Argo Rollouts emitted {{ $labels.reason }} for rollout {{ $labels.namespace }}/{{ $labels.name }}. The canary was aborted or its analysis failed."
+            runbook_url: "https://github.com/truongcongtu318/gitops_lab"
