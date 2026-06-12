@@ -7,6 +7,9 @@ metadata:
     app: api
 spec:
   revisionHistoryLimit: 3
+  analysis:
+    successfulRunHistoryLimit: 1
+    unsuccessfulRunHistoryLimit: 2
   replicas: 4
   selector:
     matchLabels:
