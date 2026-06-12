@@ -54,9 +54,7 @@ spec:
             runbook_url: "https://github.com/truongcongtu318/gitops_lab"
         - alert: ApiCanaryRolloutFailed
           expr: |
-            sum by (namespace, name, reason) (
-              increase(rollout_events_total{namespace="demo",name="api",reason=~"AnalysisRunFailed|RolloutAborted",type="Warning"}[2m])
-            ) > 0
+            rollout_phase{namespace="demo",name="api",phase="Abort"} == 1
           for: 0m
           labels:
             severity: critical
@@ -64,5 +62,5 @@ spec:
             slo: api-canary
           annotations:
             summary: "API canary rollout failed"
-            description: "Argo Rollouts emitted {{ $labels.reason }} for rollout {{ $labels.namespace }}/{{ $labels.name }}. The canary was aborted or its analysis failed."
+            description: "Rollout {{ $labels.namespace }}/{{ $labels.name }} is in Abort phase. Argo Rollouts aborted the canary after analysis failed."
             runbook_url: "https://github.com/truongcongtu318/gitops_lab"
