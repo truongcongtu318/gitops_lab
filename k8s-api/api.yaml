@@ -6,6 +6,7 @@ metadata:
   labels:
     app: api
 spec:
+  revisionHistoryLimit: 3
   replicas: 4
   selector:
     matchLabels:
@@ -24,9 +25,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "1"
+              value: "0"
             - name: VERSION
-              value: "v6-canary-alert-test"
+              value: "v7"
           readinessProbe:
             httpGet:
               path: /healthz
