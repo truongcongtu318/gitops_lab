@@ -54,8 +54,9 @@ spec:
             runbook_url: "https://github.com/truongcongtu318/gitops_lab"
         - alert: ApiCanaryRolloutFailed
           expr: |
-            max by (exported_namespace, name, phase) (
-              rollout_phase{exported_namespace="demo",name="api",phase="Abort"}
+            max without(instance, pod, container, endpoint, job, service) (
+              rollout_phase{name="api",phase="Abort",namespace="demo"}
+              or rollout_phase{name="api",phase="Abort",exported_namespace="demo"}
             ) == 1
           for: 0m
           labels:
@@ -64,19 +65,5 @@ spec:
             slo: api-canary
           annotations:
             summary: "API canary rollout aborted"
-            description: "Argo Rollouts reports rollout {{ $labels.exported_namespace }}/{{ $labels.name }} in phase {{ $labels.phase }}. The bad canary was aborted and should route to email-api-alerts."
-            runbook_url: "https://github.com/truongcongtu318/gitops_lab"
-        - alert: ApiCanaryAnalysisFailed
-          expr: |
-            max by (exported_namespace, name, phase) (
-              analysis_run_info{exported_namespace="demo",name=~"api-.*",phase="Failed"}
-            ) == 1
-          for: 0m
-          labels:
-            severity: critical
-            service: api
-            slo: api-canary
-          annotations:
-            summary: "API canary analysis failed"
-            description: "Argo Rollouts AnalysisRun {{ $labels.exported_namespace }}/{{ $labels.name }} is {{ $labels.phase }}. This should route to email-api-alerts."
+            description: "Argo Rollouts reports API rollout in Abort phase. The bad canary was aborted and should route to email-api-alerts."
             runbook_url: "https://github.com/truongcongtu318/gitops_lab"
