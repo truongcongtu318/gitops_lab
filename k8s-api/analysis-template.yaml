@@ -14,6 +14,6 @@ spec:
         prometheus:
           address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
           query: |
-            sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[2m]))
+            sum(rate(flask_http_request_total{namespace="demo",service="api",status!~"5.."}[2m]))
             /
-            sum(rate(flask_http_request_total{namespace="demo"}[2m]))
+            clamp_min(sum(rate(flask_http_request_total{namespace="demo",service="api"}[2m])), 0.001)
