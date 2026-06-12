@@ -10,7 +10,7 @@ spec:
   analysis:
     successfulRunHistoryLimit: 1
     unsuccessfulRunHistoryLimit: 2
-  replicas: 10
+  replicas: 4
   selector:
     matchLabels:
       app: api
@@ -28,9 +28,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "1"
+              value: "0"
             - name: VERSION
-              value: "v10"
+              value: "v9"
           readinessProbe:
             httpGet:
               path: /healthz
